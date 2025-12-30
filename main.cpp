@@ -99,10 +99,9 @@ int main(int argc, char** argv) {
             MPI_Irecv(&phi[(local_Nx + 1) * layer_size], layer_size, MPI_DOUBLE, rank + 1, 0, MPI_COMM_WORLD, &reqs[n_reqs++]);
         }
 
-        // граничные слои локальной области 
         auto calculate_layer = [&](int i) {
             int global_i = start_i + (i - 1);
-            if (global_i > 0 && global_i < Nx - 1) { // НЕ пересчитываем глобальные границы
+            if (global_i > 0 && global_i < Nx - 1) { 
                 double diff_local = 0.0;
                 #pragma omp parallel for collapse(2) reduction(max: diff_local)
                 for (int j = 1; j < Ny - 1; ++j) {
@@ -122,12 +121,10 @@ int main(int argc, char** argv) {
             }
         };
 
-        // вычисление внутренней части (i = 2 ... local_Nx - 1)
         double local_max_diff = 0.0;
         if (local_Nx > 2) {
             #pragma omp parallel for collapse(2) reduction(max: local_max_diff)
             for (int i = 2; i < local_Nx; ++i) {
-                // ... (то же самое, что внутри calculate_layer, дублируем для инлайнинга OpenMP)
                  for (int j = 1; j < Ny - 1; ++j) {
                     for (int k = 1; k < Nz - 1; ++k) {
                         int idx = i * layer_size + j * Nz + k;
@@ -147,11 +144,6 @@ int main(int argc, char** argv) {
         // ожидание завершения обменов
         MPI_Waitall(n_reqs, reqs, MPI_STATUSES_IGNORE);
 
-        // считаем границы (i=1 и i=local_Nx), так как ghost cells обновлены
-        // в классической схеме перекрытия мы считаем ВНУТРЕННОСТЬ пока идут обмены
-        // ран зависящие от ghost cells считаем ПОСЛЕ Waitall.
-        // в методе Якоби i=1 зависит от i=0(ghost) и i=2(своего).
-        // поэтому i=1 и i=local_Nx считаем ЗДЕСЬ после Waitall.
         
         double border_max_diff = 0.0;
         // i = 1
@@ -173,7 +165,6 @@ int main(int argc, char** argv) {
                  }
              }
         }
-        // i = local_Nx (если он отличается от 1)
         if (local_Nx > 1) {
              int i = local_Nx;
              int global_i = start_i + (i - 1);
@@ -195,7 +186,6 @@ int main(int argc, char** argv) {
 
         std::swap(phi, phi_new);
 
-        // Сбор глобальной ошибки
         double global_max_diff;
         MPI_Allreduce(&max_diff, &global_max_diff, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
         max_diff = global_max_diff;
