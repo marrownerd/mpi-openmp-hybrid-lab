@@ -116,7 +116,7 @@ int main(int argc, char** argv) {
                         diff_local = std::max(diff_local, std::abs(val - phi[idx]));
                     }
                 }
-                #pragma omp atomic update // Для обновления глобального максимума безопасно
+                #pragma omp atomic update 
                 if (diff_local > max_diff) max_diff = diff_local; // учше через critical?
             }
         };
