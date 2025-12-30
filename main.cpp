@@ -1,10 +1,3 @@
-/*
- * Лабораторная работа №4: Параллельная реализация метода Якоби
- * Уравнение: Delta phi - a*phi = rho
- * Область: [-1, 1] x [-1, 1] x [-1, 1]
- * Технологии: Hybrid MPI + OpenMP
- */
-
 #include <mpi.h>
 #include <omp.h>
 #include <iostream>
