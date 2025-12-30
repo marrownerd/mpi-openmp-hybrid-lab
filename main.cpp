@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
                 
                 int idx = i * layer_size + j * Nz + k;
 
-                // Заполняем правую часть
+                // 
                 rho_arr[idx] = rho_func(x, y, z);
 
                 if (global_i == 0 || global_i == Nx - 1 || j == 0 || j == Ny - 1 || k == 0 || k == Nz - 1) {
